@@ -1,0 +1,65 @@
+{
+  "name": "living-economy-arena-environmental-systems",
+  "version": "1.0.0",
+  "description": "Comprehensive environmental impact and sustainability systems for the Living Economy Arena",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "lint": "eslint .",
+    "validate": "node validation/system-validator.js",
+    "demo": "node demo/environmental-demo.js",
+    "benchmark": "node benchmark/performance-benchmark.js"
+  },
+  "keywords": [
+    "environmental",
+    "sustainability",
+    "carbon-tracking",
+    "green-economics",
+    "climate-risk",
+    "circular-economy",
+    "esg",
+    "environmental-impact",
+    "living-economy"
+  ],
+  "author": "Living Economy Arena - Environmental Systems Engineer",
+  "license": "MIT",
+  "dependencies": {
+    "lodash": "^4.17.21",
+    "moment": "^2.29.4",
+    "uuid": "^9.0.0",
+    "chalk": "^4.1.2"
+  },
+  "devDependencies": {
+    "jest": "^29.5.0",
+    "eslint": "^8.42.0",
+    "nodemon": "^2.0.22"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/living-economy-arena/environmental-systems"
+  },
+  "bugs": {
+    "url": "https://github.com/living-economy-arena/environmental-systems/issues"
+  },
+  "homepage": "https://github.com/living-economy-arena/environmental-systems#readme",
+  "jest": {
+    "testEnvironment": "node",
+    "collectCoverageFrom": [
+      "**/*.js",
+      "!node_modules/**",
+      "!coverage/**"
+    ]
+  },
+  "environmental-systems": {
+    "carbonNeutralCommitment": "2030",
+    "sustainabilityStandards": ["ISO14001", "GRI", "TCFD", "SBTi"],
+    "circularEconomyTarget": "80%",
+    "renewableEnergyTarget": "100%",
+    "wasteReductionTarget": "90%"
+  }
+}

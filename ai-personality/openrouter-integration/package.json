@@ -1,0 +1,45 @@
+{
+  "name": "@living-economy-arena/openrouter-integration",
+  "version": "1.0.0",
+  "description": "Phase 3 Market Complexity: OpenRouter AI Integration for Enhanced Intelligence",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node test/integration-test.js",
+    "monitor": "node monitoring.js",
+    "benchmark": "node test/benchmark.js",
+    "demo": "node demo/demo.js"
+  },
+  "keywords": [
+    "openrouter",
+    "ai",
+    "integration",
+    "market-complexity",
+    "phase3",
+    "living-economy-arena",
+    "machine-learning",
+    "intelligent-agents",
+    "swarm-intelligence"
+  ],
+  "author": "Living Economy Arena Development Team",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "events": "^3.3.0"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "nodemon": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/living-economy-arena/openrouter-integration"
+  },
+  "bugs": {
+    "url": "https://github.com/living-economy-arena/openrouter-integration/issues"
+  },
+  "homepage": "https://github.com/living-economy-arena/openrouter-integration#readme"
+}

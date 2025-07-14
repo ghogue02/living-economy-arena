@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Living Economy Arena - Real-Time Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: white;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 300;
+            background: linear-gradient(135deg, #00ff88 0%, #00d2ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ff4444;
+            transition: background 0.3s ease;
+        }
+        
+        .status-dot.connected {
+            background: #00ff88;
+            box-shadow: 0 0 10px #00ff88;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 15px;
+            padding: 15px;
+            height: calc(100vh - 80px);
+        }
+        
+        .panel {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .panel:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 255, 136, 0.2);
+            border-color: rgba(0, 255, 136, 0.3);
+        }
+        
+        .panel h3 {
+            font-size: 1.2rem;
+            font-weight: 300;
+            margin-bottom: 15px;
+            color: #00d2ff;
+        }
+        
+        .panel-large {
+            grid-column: span 2;
+        }
+        
+        .metric-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            height: 100%;
+        }
+        
+        .metric-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .metric-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00ff88;
+            margin-bottom: 5px;
+        }
+        
+        .metric-label {
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+        
+        .chart-container {
+            height: calc(100% - 40px);
+            position: relative;
+        }
+        
+        .last-update {
+            position: absolute;
+            bottom: 5px;
+            right: 10px;
+            font-size: 0.7rem;
+            color: #666;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        .updating {
+            animation: pulse 1s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎯 Living Economy Arena - Real-Time Dashboard</h1>
+        <div class="connection-status">
+            <span>Backend:</span>
+            <div class="status-dot" id="connectionStatus"></div>
+            <span id="connectionText">Connecting...</span>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <!-- Market Performance Chart -->
+        <div class="panel panel-large">
+            <h3>📈 Market Performance</h3>
+            <div class="chart-container">
+                <canvas id="marketChart"></canvas>
+            </div>
+            <div class="last-update" id="marketUpdate">--</div>
+        </div>
+        
+        <!-- System Metrics -->
+        <div class="panel">
+            <h3>⚡ System Metrics</h3>
+            <div class="metric-grid">
+                <div class="metric-item">
+                    <span class="metric-icon">🔥</span>
+                    <div class="metric-value" id="cpu-usage">--</div>
+                    <div class="metric-label">CPU Usage</div>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-icon">💾</span>
+                    <div class="metric-value" id="memory-usage">--</div>
+                    <div class="metric-label">Memory</div>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-icon">⚡</span>
+                    <div class="metric-value" id="tps">--</div>
+                    <div class="metric-label">TPS</div>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-icon">⏱️</span>
+                    <div class="metric-value" id="latency">--</div>
+                    <div class="metric-label">Latency</div>
+                </div>
+            </div>
+            <div class="last-update" id="systemUpdate">--</div>
+        </div>
+        
+        <!-- AI Agent Activity -->
+        <div class="panel panel-large">
+            <h3>🤖 AI Agent Activity</h3>
+            <div class="chart-container">
+                <canvas id="agentChart"></canvas>
+            </div>
+            <div class="last-update" id="agentUpdate">--</div>
+        </div>
+        
+        <!-- Economic Indicators -->
+        <div class="panel">
+            <h3>💰 Economic Health</h3>
+            <div class="metric-grid">
+                <div class="metric-item">
+                    <span class="metric-icon">📊</span>
+                    <div class="metric-value" id="gdp-growth">--</div>
+                    <div class="metric-label">GDP Growth</div>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-icon">💹</span>
+                    <div class="metric-value" id="inflation">--</div>
+                    <div class="metric-label">Inflation</div>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-icon">🌱</span>
+                    <div class="metric-value" id="carbon-score">--</div>
+                    <div class="metric-label">Carbon Score</div>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-icon">♻️</span>
+                    <div class="metric-value" id="sustainability">--</div>
+                    <div class="metric-label">Sustainability</div>
+                </div>
+            </div>
+            <div class="last-update" id="economicUpdate">--</div>
+        </div>
+    </div>
+    
+    <script>
+        class RealTimeDashboard {
+            constructor() {
+                this.ws = null;
+                this.reconnectInterval = 3000;
+                this.charts = {};
+                this.lastData = {};
+                
+                this.initCharts();
+                this.connectWebSocket();
+                
+                // Also poll HTTP API as fallback
+                this.initHttpFallback();
+            }
+            
+            initCharts() {
+                // Market Performance Chart
+                const marketCtx = document.getElementById('marketChart').getContext('2d');
+                this.charts.market = new Chart(marketCtx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Volume ($B)',
+                            data: [],
+                            borderColor: '#00ff88',
+                            backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        }, {
+                            label: 'Active Trades (K)',
+                            data: [],
+                            borderColor: '#00d2ff',
+                            backgroundColor: 'rgba(0, 210, 255, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4,
+                            yAxisID: 'y1'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { labels: { color: '#fff' } }
+                        },
+                        scales: {
+                            x: { 
+                                ticks: { color: '#aaa' },
+                                grid: { color: 'rgba(255,255,255,0.1)' }
+                            },
+                            y: { 
+                                ticks: { color: '#aaa' },
+                                grid: { color: 'rgba(255,255,255,0.1)' }
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                ticks: { color: '#aaa' },
+                                grid: { drawOnChartArea: false }
+                            }
+                        }
+                    }
+                });
+                
+                // Agent Activity Chart
+                const agentCtx = document.getElementById('agentChart').getContext('2d');
+                this.charts.agent = new Chart(agentCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Active', 'Learning', 'Coordinating'],
+                        datasets: [{
+                            data: [0, 0, 0],
+                            backgroundColor: ['#00ff88', '#00d2ff', '#ff6b6b'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { color: '#fff', padding: 15 }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            connectWebSocket() {
+                const wsUrl = 'ws://localhost:8001/ws';
+                console.log('🔗 Connecting to WebSocket:', wsUrl);
+                
+                this.ws = new WebSocket(wsUrl);
+                
+                this.ws.onopen = () => {
+                    console.log('✅ WebSocket connected');
+                    this.updateConnectionStatus(true);
+                };
+                
+                this.ws.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        this.updateDashboard(data);
+                    } catch (error) {
+                        console.error('Error parsing WebSocket data:', error);
+                    }
+                };
+                
+                this.ws.onclose = () => {
+                    console.log('❌ WebSocket disconnected');
+                    this.updateConnectionStatus(false);
+                    
+                    // Attempt to reconnect
+                    setTimeout(() => {
+                        console.log('🔄 Attempting to reconnect...');
+                        this.connectWebSocket();
+                    }, this.reconnectInterval);
+                };
+                
+                this.ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                    this.updateConnectionStatus(false);
+                };
+            }
+            
+            initHttpFallback() {
+                // Poll HTTP API every 5 seconds as fallback
+                setInterval(async () => {
+                    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+                        try {
+                            const response = await fetch('http://localhost:8001/api/all');
+                            if (response.ok) {
+                                const data = await response.json();
+                                this.updateDashboard(data);
+                                this.updateConnectionStatus(true, 'HTTP');
+                            }
+                        } catch (error) {
+                            console.error('HTTP fallback failed:', error);
+                            this.updateConnectionStatus(false);
+                        }
+                    }
+                }, 5000);
+            }
+            
+            updateConnectionStatus(connected, method = 'WebSocket') {
+                const statusDot = document.getElementById('connectionStatus');
+                const statusText = document.getElementById('connectionText');
+                
+                if (connected) {
+                    statusDot.classList.add('connected');
+                    statusText.textContent = `Connected (${method})`;
+                } else {
+                    statusDot.classList.remove('connected');
+                    statusText.textContent = 'Disconnected';
+                }
+            }
+            
+            updateDashboard(data) {
+                this.lastData = data;
+                
+                // Update market data
+                if (data.market) {
+                    this.updateMarketChart(data.market);
+                    document.getElementById('marketUpdate').textContent = 
+                        new Date(data.market.timestamp).toLocaleTimeString();
+                }
+                
+                // Update agent data
+                if (data.agents) {
+                    this.updateAgentChart(data.agents);
+                    document.getElementById('agentUpdate').textContent = 
+                        new Date(data.agents.timestamp).toLocaleTimeString();
+                }
+                
+                // Update system metrics
+                if (data.system) {
+                    document.getElementById('cpu-usage').textContent = data.system.cpu_usage + '%';
+                    document.getElementById('memory-usage').textContent = data.system.memory_mb + 'MB';
+                    document.getElementById('tps').textContent = data.system.tps.toLocaleString();
+                    document.getElementById('latency').textContent = data.system.latency_ms + 'ms';
+                    document.getElementById('systemUpdate').textContent = 
+                        new Date(data.system.timestamp).toLocaleTimeString();
+                }
+                
+                // Update economic data
+                if (data.economic) {
+                    document.getElementById('gdp-growth').textContent = '+' + data.economic.gdp_growth + '%';
+                    document.getElementById('inflation').textContent = data.economic.inflation + '%';
+                    document.getElementById('carbon-score').textContent = data.economic.carbon_score + '/100';
+                    document.getElementById('sustainability').textContent = data.economic.sustainability;
+                    document.getElementById('economicUpdate').textContent = 
+                        new Date(data.economic.timestamp).toLocaleTimeString();
+                }
+                
+                // Add updating animation
+                document.querySelectorAll('.panel').forEach(panel => {
+                    panel.classList.add('updating');
+                    setTimeout(() => panel.classList.remove('updating'), 500);
+                });
+            }
+            
+            updateMarketChart(marketData) {
+                const chart = this.charts.market;
+                const now = new Date(marketData.timestamp).toLocaleTimeString();
+                
+                // Add new data point
+                chart.data.labels.push(now);
+                chart.data.datasets[0].data.push(marketData.volume_24h);
+                chart.data.datasets[1].data.push(marketData.active_trades / 1000); // Convert to K
+                
+                // Keep only last 20 data points
+                if (chart.data.labels.length > 20) {
+                    chart.data.labels.shift();
+                    chart.data.datasets[0].data.shift();
+                    chart.data.datasets[1].data.shift();
+                }
+                
+                chart.update('none');
+            }
+            
+            updateAgentChart(agentData) {
+                const chart = this.charts.agent;
+                
+                chart.data.datasets[0].data = [
+                    agentData.active_agents,
+                    agentData.learning_agents,
+                    agentData.coordinating_agents
+                ];
+                
+                chart.update('none');
+            }
+        }
+        
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🎯 Initializing Real-Time Dashboard...');
+            new RealTimeDashboard();
+        });
+    </script>
+</body>
+</html>

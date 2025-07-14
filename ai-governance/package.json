@@ -1,0 +1,93 @@
+{
+  "name": "ai-governance-framework",
+  "version": "1.0.0",
+  "description": "Comprehensive AI Governance Framework for Living Economy Arena - Phase 4",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node testing/governance-test-suite.js",
+    "test:unit": "npm run test -- --category=unit",
+    "test:integration": "npm run test -- --category=integration",
+    "test:performance": "npm run test -- --category=performance",
+    "test:coverage": "npm run test -- --coverage",
+    "governance:validate": "node scripts/validate-governance.js",
+    "governance:monitor": "node scripts/monitor-governance.js",
+    "governance:report": "node scripts/generate-reports.js",
+    "governance:audit": "node scripts/audit-governance.js",
+    "demo": "node demo/governance-demo.js",
+    "benchmark": "node benchmark/governance-benchmark.js",
+    "docs": "node scripts/generate-docs.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "keywords": [
+    "ai-governance",
+    "compliance",
+    "ethics",
+    "audit",
+    "risk-assessment",
+    "transparency",
+    "regulatory",
+    "living-economy",
+    "phase4"
+  ],
+  "author": "Living Economy Arena Development Team",
+  "license": "MIT",
+  "dependencies": {
+    "crypto": "^1.0.1",
+    "events": "^3.3.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "jest": "^29.0.0",
+    "nodemon": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/living-economy-arena/ai-governance"
+  },
+  "bugs": {
+    "url": "https://github.com/living-economy-arena/ai-governance/issues"
+  },
+  "homepage": "https://github.com/living-economy-arena/ai-governance#readme",
+  "directories": {
+    "core": "./core",
+    "ethics": "./ethics",
+    "compliance": "./compliance",
+    "audit": "./audit",
+    "reporting": "./reporting",
+    "risk": "./risk",
+    "transparency": "./transparency",
+    "monitoring": "./monitoring",
+    "enforcement": "./enforcement",
+    "integration": "./integration",
+    "testing": "./testing"
+  },
+  "exports": {
+    ".": "./index.js",
+    "./core": "./core/governance-orchestrator.js",
+    "./ethics": "./ethics/ethics-framework.js",
+    "./compliance": "./compliance/compliance-system.js",
+    "./audit": "./audit/audit-trail-system.js",
+    "./reporting": "./reporting/reporting-engine.js",
+    "./risk": "./risk/risk-assessment.js",
+    "./transparency": "./transparency/transparency-engine.js",
+    "./monitoring": "./monitoring/monitoring-system.js",
+    "./enforcement": "./enforcement/enforcement-engine.js",
+    "./integration": "./integration/governance-integration.js",
+    "./testing": "./testing/governance-test-suite.js"
+  },
+  "config": {
+    "governance": {
+      "jurisdictions": ["EU", "US", "UK"],
+      "strictnessLevel": "enterprise",
+      "realTimeMonitoring": true,
+      "autoRemediation": true,
+      "auditRetention": "7years",
+      "complianceThreshold": 0.95
+    }
+  }
+}

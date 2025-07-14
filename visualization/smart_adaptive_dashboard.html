@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Adaptive System - Living Economy Arena</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: white;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid rgba(0, 255, 136, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 300;
+            background: linear-gradient(135deg, #00ff88 0%, #00d2ff 50%, #ffd93d 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .system-badge {
+            background: rgba(0, 255, 136, 0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            border: 1px solid rgba(0, 255, 136, 0.4);
+        }
+        
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 0.9rem;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff4444;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7);
+            animation: pulse-red 2s infinite;
+        }
+        
+        .status-dot.connected {
+            background: #00ff88;
+            box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7);
+            animation: pulse-green 2s infinite;
+        }
+        
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
+        }
+        
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 255, 136, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: 1fr 1fr 1fr;
+            gap: 15px;
+            padding: 15px;
+            height: calc(100vh - 100px);
+        }
+        
+        .panel {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .panel:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px rgba(0, 255, 136, 0.25);
+            border-color: rgba(0, 255, 136, 0.4);
+        }
+        
+        .panel h3 {
+            font-size: 1.3rem;
+            font-weight: 400;
+            margin-bottom: 15px;
+            color: #00d2ff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .panel-icon {
+            font-size: 1.5rem;
+        }
+        
+        .panel-large {
+            grid-column: span 2;
+        }
+        
+        .panel-tall {
+            grid-row: span 2;
+        }
+        
+        .metric-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .metric-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.02);
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #00ff88;
+            margin-bottom: 5px;
+        }
+        
+        .metric-label {
+            font-size: 0.9rem;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .metric-change {
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+        
+        .metric-change.positive {
+            color: #00ff88;
+        }
+        
+        .metric-change.negative {
+            color: #ff6b6b;
+        }
+        
+        .model-status {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .model-chip {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .model-chip.available {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: rgba(0, 255, 136, 0.4);
+            color: #00ff88;
+        }
+        
+        .model-chip.rate-limited {
+            background: rgba(255, 107, 107, 0.2);
+            border-color: rgba(255, 107, 107, 0.4);
+            color: #ff6b6b;
+        }
+        
+        .model-chip.cooldown {
+            background: rgba(255, 211, 61, 0.2);
+            border-color: rgba(255, 211, 61, 0.4);
+            color: #ffd93d;
+        }
+        
+        .agent-list {
+            max-height: 200px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        }
+        
+        .agent-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .agent-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+        
+        .agent-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .agent-id {
+            font-weight: 500;
+            color: #00d2ff;
+            margin-bottom: 3px;
+        }
+        
+        .agent-type {
+            font-size: 0.8rem;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .agent-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .agent-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00ff88;
+        }
+        
+        .agent-status-dot.hibernated {
+            background: #ffd93d;
+        }
+        
+        .agent-status-dot.error {
+            background: #ff6b6b;
+        }
+        
+        .story-feed {
+            max-height: 300px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        }
+        
+        .story-item {
+            padding: 15px;
+            margin-bottom: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border-left: 4px solid #00ff88;
+            transition: all 0.3s ease;
+        }
+        
+        .story-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+        
+        .story-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .story-agent {
+            font-weight: 500;
+            color: #00d2ff;
+        }
+        
+        .story-time {
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+        
+        .story-content {
+            color: #ddd;
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+        
+        .story-action {
+            display: inline-block;
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .alert-banner {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: rgba(255, 107, 107, 0.9);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 107, 107, 0.5);
+            backdrop-filter: blur(10px);
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .alert-banner.show {
+            transform: translateX(0);
+        }
+        
+        .performance-chart {
+            height: 200px;
+            margin-top: 15px;
+        }
+        
+        .loading-spinner {
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid #00ff88;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .footer-info {
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        
+        .footer-models {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .footer-model-count {
+            background: rgba(0, 255, 136, 0.2);
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(0, 255, 136, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>
+            🧠 Smart Adaptive System
+            <span class="system-badge">v1.0</span>
+        </h1>
+        <div class="connection-status">
+            <div class="status-indicator">
+                <div class="status-dot" id="connectionStatus"></div>
+                <span id="connectionText">Connecting...</span>
+            </div>
+            <div class="status-indicator">
+                <span>⚡</span>
+                <span id="responseTime">0ms</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <!-- System Overview -->
+        <div class="panel">
+            <h3><span class="panel-icon">📊</span> System Overview</h3>
+            <div class="metric-grid">
+                <div class="metric-card">
+                    <div class="metric-value" id="totalAgents">0</div>
+                    <div class="metric-label">Total Agents</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="activeAgents">0</div>
+                    <div class="metric-label">Active Agents</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="hibernatedAgents">0</div>
+                    <div class="metric-label">Hibernated</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="systemLoad">0%</div>
+                    <div class="metric-label">System Load</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Model Status -->
+        <div class="panel panel-large">
+            <h3><span class="panel-icon">🤖</span> Multi-Model Status</h3>
+            <div class="metric-grid">
+                <div class="metric-card">
+                    <div class="metric-value" id="availableModels">0</div>
+                    <div class="metric-label">Available Models</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="rateLimitedModels">0</div>
+                    <div class="metric-label">Rate Limited</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="avgResponseTime">0ms</div>
+                    <div class="metric-label">Avg Response Time</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="successRate">0%</div>
+                    <div class="metric-label">Success Rate</div>
+                </div>
+            </div>
+            <div class="model-status" id="modelStatus"></div>
+        </div>
+        
+        <!-- Economic Metrics -->
+        <div class="panel">
+            <h3><span class="panel-icon">💰</span> Economic Metrics</h3>
+            <div class="metric-grid">
+                <div class="metric-card">
+                    <div class="metric-value" id="gdpGrowth">0%</div>
+                    <div class="metric-label">GDP Growth</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="inflation">0%</div>
+                    <div class="metric-label">Inflation</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="unemployment">0%</div>
+                    <div class="metric-label">Unemployment</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="decisionsPerMinute">0</div>
+                    <div class="metric-label">Decisions/Min</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Agent Activity -->
+        <div class="panel">
+            <h3><span class="panel-icon">👥</span> Agent Activity</h3>
+            <div class="agent-list" id="agentList">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+        
+        <!-- Performance Chart -->
+        <div class="panel panel-large">
+            <h3><span class="panel-icon">📈</span> Performance Monitor</h3>
+            <canvas id="performanceChart" class="performance-chart"></canvas>
+        </div>
+        
+        <!-- Story Feed -->
+        <div class="panel panel-tall">
+            <h3><span class="panel-icon">📚</span> Story Feed</h3>
+            <div class="story-feed" id="storyFeed">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+        
+        <!-- System Alerts -->
+        <div class="panel">
+            <h3><span class="panel-icon">⚠️</span> System Alerts</h3>
+            <div id="systemAlerts">
+                <div style="text-align: center; color: #00ff88; margin-top: 20px;">
+                    All systems nominal
+                </div>
+            </div>
+        </div>
+        
+        <!-- API Queue Status -->
+        <div class="panel">
+            <h3><span class="panel-icon">🔄</span> API Queue</h3>
+            <div class="metric-grid">
+                <div class="metric-card">
+                    <div class="metric-value" id="queueSize">0</div>
+                    <div class="metric-label">Queue Size</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="processingRate">0</div>
+                    <div class="metric-label">Processing Rate</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <div class="footer-info">
+            Smart Adaptive System | Multi-Model AI | Real-time Economic Simulation
+        </div>
+        <div class="footer-models">
+            <span class="footer-model-count" id="modelCount">14 Models</span>
+            <span>Last Update: <span id="lastUpdate">Never</span></span>
+        </div>
+    </div>
+    
+    <div class="alert-banner" id="alertBanner">
+        <div id="alertMessage">System Alert</div>
+    </div>
+    
+    <script>
+        // WebSocket connection
+        let ws = null;
+        let isConnected = false;
+        let lastUpdateTime = 0;
+        let performanceChart = null;
+        let chartData = [];
+        
+        // Initialize dashboard
+        function initializeDashboard() {
+            connectWebSocket();
+            setupPerformanceChart();
+            updateTimestamp();
+            setInterval(updateTimestamp, 1000);
+        }
+        
+        // WebSocket connection
+        function connectWebSocket() {
+            try {
+                ws = new WebSocket('ws://localhost:8765');
+                
+                ws.onopen = function(event) {
+                    console.log('Smart Adaptive System connected');
+                    isConnected = true;
+                    updateConnectionStatus();
+                };
+                
+                ws.onmessage = function(event) {
+                    const data = JSON.parse(event.data);
+                    handleWebSocketMessage(data);
+                };
+                
+                ws.onclose = function(event) {
+                    console.log('Smart Adaptive System disconnected');
+                    isConnected = false;
+                    updateConnectionStatus();
+                    
+                    // Reconnect after 5 seconds
+                    setTimeout(connectWebSocket, 5000);
+                };
+                
+                ws.onerror = function(error) {
+                    console.error('WebSocket error:', error);
+                    isConnected = false;
+                    updateConnectionStatus();
+                };
+                
+            } catch (error) {
+                console.error('Failed to connect:', error);
+                isConnected = false;
+                updateConnectionStatus();
+                setTimeout(connectWebSocket, 5000);
+            }
+        }
+        
+        // Handle WebSocket messages
+        function handleWebSocketMessage(data) {
+            lastUpdateTime = Date.now();
+            
+            switch (data.type) {
+                case 'smart_system_init':
+                    handleSystemInit(data);
+                    break;
+                case 'smart_system_update':
+                    handleSystemUpdate(data);
+                    break;
+                case 'model_stats':
+                    updateModelStatus(data.data);
+                    break;
+                case 'performance_data':
+                    updatePerformanceData(data.data);
+                    break;
+                case 'pong':
+                    updateResponseTime(Date.now() - data.timestamp);
+                    break;
+            }
+        }
+        
+        // Handle system initialization
+        function handleSystemInit(data) {
+            console.log('Smart Adaptive System initialized:', data.system_info);
+            updateSystemOverview(data.metrics);
+            updateEconomicMetrics(data.market_conditions);
+            
+            // Send ping to measure response time
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({type: 'ping', timestamp: Date.now()}));
+            }
+        }
+        
+        // Handle system updates
+        function handleSystemUpdate(data) {
+            updateSystemOverview(data.metrics);
+            updateEconomicMetrics(data.market_conditions);
+            updateModelStatus(data.model_stats);
+            updateAgentActivity(data.scaling_stats);
+            updateStoryFeed(data.recent_decisions);
+            updatePerformanceChart(data.performance_data);
+            
+            // Handle alerts
+            if (data.performance_data && data.performance_data.alerts) {
+                handleSystemAlerts(data.performance_data.alerts);
+            }
+        }
+        
+        // Update connection status
+        function updateConnectionStatus() {
+            const statusDot = document.getElementById('connectionStatus');
+            const statusText = document.getElementById('connectionText');
+            
+            if (isConnected) {
+                statusDot.classList.add('connected');
+                statusText.textContent = 'Connected';
+            } else {
+                statusDot.classList.remove('connected');
+                statusText.textContent = 'Disconnected';
+            }
+        }
+        
+        // Update system overview
+        function updateSystemOverview(metrics) {
+            document.getElementById('totalAgents').textContent = metrics.total_agents || 0;
+            document.getElementById('activeAgents').textContent = metrics.active_agents || 0;
+            document.getElementById('hibernatedAgents').textContent = metrics.hibernated_agents || 0;
+            document.getElementById('systemLoad').textContent = `${(metrics.system_load * 100).toFixed(1)}%`;
+        }
+        
+        // Update economic metrics
+        function updateEconomicMetrics(conditions) {
+            document.getElementById('gdpGrowth').textContent = `${conditions.gdp_growth.toFixed(1)}%`;
+            document.getElementById('inflation').textContent = `${conditions.inflation.toFixed(1)}%`;
+            document.getElementById('unemployment').textContent = `${conditions.unemployment.toFixed(1)}%`;
+        }
+        
+        // Update model status
+        function updateModelStatus(modelStats) {
+            const modelStatusDiv = document.getElementById('modelStatus');
+            const availableCount = Object.values(modelStats).filter(m => m.is_available).length;
+            const rateLimitedCount = Object.values(modelStats).filter(m => m.rate_limit_hits > 0).length;
+            
+            document.getElementById('availableModels').textContent = availableCount;
+            document.getElementById('rateLimitedModels').textContent = rateLimitedCount;
+            
+            // Calculate average response time and success rate
+            const models = Object.values(modelStats);
+            const avgResponseTime = models.reduce((sum, m) => sum + m.avg_response_time, 0) / models.length;
+            const avgSuccessRate = models.reduce((sum, m) => sum + m.success_rate, 0) / models.length;
+            
+            document.getElementById('avgResponseTime').textContent = `${(avgResponseTime * 1000).toFixed(0)}ms`;
+            document.getElementById('successRate').textContent = `${(avgSuccessRate * 100).toFixed(1)}%`;
+            
+            // Update model chips
+            modelStatusDiv.innerHTML = '';
+            Object.entries(modelStats).forEach(([model, stats]) => {
+                const chip = document.createElement('div');
+                chip.className = 'model-chip';
+                chip.textContent = model.split('/').pop().replace(':free', '');
+                
+                if (stats.is_available) {
+                    chip.classList.add('available');
+                } else if (stats.rate_limit_hits > 0) {
+                    chip.classList.add('rate-limited');
+                } else {
+                    chip.classList.add('cooldown');
+                }
+                
+                modelStatusDiv.appendChild(chip);
+            });
+        }
+        
+        // Update agent activity
+        function updateAgentActivity(scalingStats) {
+            const agentList = document.getElementById('agentList');
+            // For now, show summary stats
+            agentList.innerHTML = `
+                <div class="agent-item">
+                    <div class="agent-info">
+                        <div class="agent-id">Active Agents</div>
+                        <div class="agent-type">Currently Processing</div>
+                    </div>
+                    <div class="agent-status">
+                        <div class="agent-status-dot"></div>
+                        <span>${scalingStats.active_agents || 0}</span>
+                    </div>
+                </div>
+                <div class="agent-item">
+                    <div class="agent-info">
+                        <div class="agent-id">Hibernated Agents</div>
+                        <div class="agent-type">Sleeping</div>
+                    </div>
+                    <div class="agent-status">
+                        <div class="agent-status-dot hibernated"></div>
+                        <span>${scalingStats.hibernated_agents || 0}</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Update story feed
+        function updateStoryFeed(decisions) {
+            const storyFeed = document.getElementById('storyFeed');
+            
+            if (!decisions || decisions.length === 0) {
+                storyFeed.innerHTML = '<div style="text-align: center; color: #aaa; margin-top: 20px;">No recent decisions</div>';
+                return;
+            }
+            
+            storyFeed.innerHTML = '';
+            decisions.slice(-12).reverse().forEach(decision => {
+                const storyItem = document.createElement('div');
+                storyItem.className = 'story-item';
+                
+                const timeAgo = formatTimeAgo(decision.timestamp);
+                const characterName = decision.character_name || decision.agent_id;
+                const agentNumber = decision.agent_id.replace('Agent_', '#');
+                const story = decision.story || `${characterName} made a ${decision.action} decision`;
+                
+                storyItem.innerHTML = `
+                    <div class="story-header">
+                        <span class="story-agent">${characterName} <small style="opacity: 0.6;">${agentNumber}</small></span>
+                        <span class="story-time">${timeAgo}</span>
+                    </div>
+                    <div class="story-content">${story}</div>
+                    <span class="story-action">${decision.action}</span>
+                `;
+                
+                storyFeed.appendChild(storyItem);
+            });
+        }
+        
+        // Setup performance chart
+        function setupPerformanceChart() {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            performanceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Response Time',
+                        data: [],
+                        borderColor: '#00ff88',
+                        backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Success Rate',
+                        data: [],
+                        borderColor: '#00d2ff',
+                        backgroundColor: 'rgba(0, 210, 255, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#aaa'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#aaa'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#aaa'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Update performance chart
+        function updatePerformanceChart(performanceData) {
+            if (!performanceChart || !performanceData) return;
+            
+            const now = new Date().toLocaleTimeString();
+            const metrics = performanceData.metrics || {};
+            
+            // Add new data point
+            chartData.push({
+                time: now,
+                responseTime: metrics.avg_response_time || 0,
+                successRate: (metrics.success_rate || 0) * 100
+            });
+            
+            // Keep only last 20 data points
+            if (chartData.length > 20) {
+                chartData.shift();
+            }
+            
+            // Update chart
+            performanceChart.data.labels = chartData.map(d => d.time);
+            performanceChart.data.datasets[0].data = chartData.map(d => d.responseTime);
+            performanceChart.data.datasets[1].data = chartData.map(d => d.successRate);
+            performanceChart.update();
+        }
+        
+        // Handle system alerts
+        function handleSystemAlerts(alerts) {
+            const alertsDiv = document.getElementById('systemAlerts');
+            const alertBanner = document.getElementById('alertBanner');
+            
+            if (alerts.length === 0) {
+                alertsDiv.innerHTML = '<div style="text-align: center; color: #00ff88; margin-top: 20px;">All systems nominal</div>';
+                return;
+            }
+            
+            // Show alerts
+            alertsDiv.innerHTML = '';
+            alerts.forEach(alert => {
+                const alertItem = document.createElement('div');
+                alertItem.className = 'alert-item';
+                alertItem.innerHTML = `
+                    <div style="color: #ff6b6b; margin-bottom: 10px;">
+                        <strong>${alert.type}:</strong> ${alert.message}
+                    </div>
+                `;
+                alertsDiv.appendChild(alertItem);
+            });
+            
+            // Show banner for critical alerts
+            const criticalAlert = alerts.find(a => a.type === 'error_rate' || a.type === 'queue_buildup');
+            if (criticalAlert) {
+                document.getElementById('alertMessage').textContent = criticalAlert.message;
+                alertBanner.classList.add('show');
+                setTimeout(() => {
+                    alertBanner.classList.remove('show');
+                }, 5000);
+            }
+        }
+        
+        // Update response time
+        function updateResponseTime(responseTime) {
+            document.getElementById('responseTime').textContent = `${responseTime}ms`;
+        }
+        
+        // Update timestamp
+        function updateTimestamp() {
+            const now = new Date();
+            document.getElementById('lastUpdate').textContent = now.toLocaleTimeString();
+        }
+        
+        // Format time ago
+        function formatTimeAgo(timestamp) {
+            const now = Date.now();
+            const diffSeconds = Math.floor((now - timestamp * 1000) / 1000);
+            
+            if (diffSeconds < 60) return `${diffSeconds}s ago`;
+            if (diffSeconds < 3600) return `${Math.floor(diffSeconds / 60)}m ago`;
+            return `${Math.floor(diffSeconds / 3600)}h ago`;
+        }
+        
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', initializeDashboard);
+        
+        // Send periodic pings to measure response time
+        setInterval(() => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({type: 'ping', timestamp: Date.now()}));
+            }
+        }, 10000);
+    </script>
+</body>
+</html>

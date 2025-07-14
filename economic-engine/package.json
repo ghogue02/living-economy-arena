@@ -1,0 +1,40 @@
+{
+  "name": "living-economy-arena-economic-engine",
+  "version": "1.0.0",
+  "description": "Core economic simulation engine supporting 100,000+ concurrent AI agents",
+  "main": "core/simulation/engine.js",
+  "scripts": {
+    "start": "node core/simulation/engine.js",
+    "test": "jest tests/",
+    "dev": "nodemon core/simulation/engine.js",
+    "benchmark": "node analytics/benchmarks.js",
+    "dashboard": "node indicators/dashboards/server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2",
+    "redis": "^4.6.7",
+    "mongoose": "^7.4.0",
+    "lodash": "^4.17.21",
+    "decimal.js": "^10.4.3",
+    "uuid": "^9.0.0",
+    "ws": "^8.13.0",
+    "pino": "^8.14.1",
+    "eventemitter3": "^5.0.1"
+  },
+  "devDependencies": {
+    "jest": "^29.6.1",
+    "nodemon": "^3.0.1",
+    "supertest": "^6.3.3"
+  },
+  "keywords": [
+    "economic-simulation",
+    "ai-agents",
+    "market-dynamics",
+    "real-time-economics",
+    "supply-demand",
+    "volatility-modeling"
+  ],
+  "author": "Living Economy Arena Hive Mind",
+  "license": "MIT"
+}

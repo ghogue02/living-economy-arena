@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Living Economy Arena - Data Visualization System</title>
+    <meta name="description" content="Real-time market visualization and analytics for 100,000+ AI agents">
+    
+    <!-- Performance optimizations -->
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/three@0.157.0/build/three.min.js" as="script">
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/d3@7.8.5/dist/d3.min.js" as="script">
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js" as="script">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📊%3C/text%3E%3C/svg%3E">
+    
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            height: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            overflow: hidden;
+        }
+        
+        /* Loading screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            transition: opacity 0.5s ease-out;
+        }
+        
+        .loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .loading-logo {
+            font-size: 4rem;
+            margin-bottom: 2rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        .loading-title {
+            font-size: 2.5rem;
+            font-weight: 300;
+            background: linear-gradient(135deg, #00ff88 0%, #00d2ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+        
+        .loading-subtitle {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 3rem;
+        }
+        
+        .loading-progress {
+            width: 400px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+        
+        .loading-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88 0%, #00d2ff 100%);
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+        
+        .loading-status {
+            font-size: 1rem;
+            color: #00ff88;
+            min-height: 1.5rem;
+        }
+        
+        .loading-features {
+            position: absolute;
+            bottom: 3rem;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            color: #666;
+        }
+        
+        .loading-features h3 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: #888;
+        }
+        
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            max-width: 800px;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .feature-icon {
+            font-size: 1.2rem;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        /* Error screen */
+        .error-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #1a0000;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10001;
+        }
+        
+        .error-screen.visible {
+            display: flex;
+        }
+        
+        .error-icon {
+            font-size: 4rem;
+            color: #ff4444;
+            margin-bottom: 2rem;
+        }
+        
+        .error-title {
+            font-size: 2rem;
+            color: #ff4444;
+            margin-bottom: 1rem;
+        }
+        
+        .error-message {
+            font-size: 1.1rem;
+            color: #ffaaaa;
+            text-align: center;
+            max-width: 600px;
+            margin-bottom: 2rem;
+        }
+        
+        .error-actions {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .error-btn {
+            padding: 12px 24px;
+            background: #ff4444;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .error-btn:hover {
+            background: #ff6666;
+        }
+        
+        /* Compatibility warning */
+        .compatibility-warning {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 170, 0, 0.9);
+            color: #000;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            z-index: 10002;
+            display: none;
+        }
+        
+        .compatibility-warning.visible {
+            display: block;
+        }
+        
+        /* Debug panel */
+        .debug-panel {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #00ff88;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            z-index: 10003;
+            display: none;
+        }
+        
+        .debug-panel.visible {
+            display: block;
+        }
+        
+        /* Performance stats */
+        .perf-stats {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #00ff88;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 11px;
+            z-index: 10003;
+            display: none;
+        }
+        
+        .perf-stats.visible {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-logo">📊</div>
+        <h1 class="loading-title">Living Economy Arena</h1>
+        <div class="loading-subtitle">500 AI Agent System</div>
+        
+        <div class="loading-progress">
+            <div class="loading-bar" id="loadingBar"></div>
+        </div>
+        <div class="loading-status" id="loadingStatus">Initializing...</div>
+        
+        <div class="loading-features">
+            <h3>System Capabilities</h3>
+            <div class="feature-list">
+                <div class="feature-item">
+                    <span class="feature-icon">📈</span>
+                    <span>Real-time market dashboards</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🌐</span>
+                    <span>Agent network visualization</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🔥</span>
+                    <span>Economic activity heat maps</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🎯</span>
+                    <span>3D market depth displays</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">⚡</span>
+                    <span>WebGPU acceleration</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🤖</span>
+                    <span>500 real AI agents</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Error Screen -->
+    <div class="error-screen" id="errorScreen">
+        <div class="error-icon">❌</div>
+        <h2 class="error-title">System Initialization Failed</h2>
+        <div class="error-message" id="errorMessage">
+            An error occurred while starting the visualization system. Please check your browser compatibility and network connection.
+        </div>
+        <div class="error-actions">
+            <button class="error-btn" onclick="window.location.reload()">Retry</button>
+            <button class="error-btn" onclick="showCompatibilityInfo()">Compatibility Info</button>
+        </div>
+    </div>
+    
+    <!-- Compatibility Warning -->
+    <div class="compatibility-warning" id="compatibilityWarning">
+        ⚠️ Some features may not work optimally in this browser. Consider using Chrome, Firefox, or Edge for the best experience.
+    </div>
+    
+    <!-- Debug Panel -->
+    <div class="debug-panel" id="debugPanel">
+        <div>Debug Mode Active</div>
+        <div id="debugInfo">Loading debug information...</div>
+    </div>
+    
+    <!-- Performance Stats -->
+    <div class="perf-stats" id="perfStats">
+        <div>Performance Monitor</div>
+        <div id="perfInfo">Collecting metrics...</div>
+    </div>
+    
+    <!-- External Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.157.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.8.5/dist/d3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+    
+    <!-- Main Application -->
+    <script type="module">
+        // Global error handling
+        window.addEventListener('error', (event) => {
+            console.error('Global error:', event.error);
+            showError(`JavaScript Error: ${event.message}`);
+        });
+        
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('Unhandled promise rejection:', event.reason);
+            showError(`Promise Rejection: ${event.reason}`);
+        });
+        
+        // Loading management
+        let loadingProgress = 0;
+        const loadingSteps = [
+            { step: 10, message: 'Checking browser compatibility...' },
+            { step: 20, message: 'Loading 3D rendering engine...' },
+            { step: 30, message: 'Initializing WebGPU acceleration...' },
+            { step: 40, message: 'Setting up data visualization engine...' },
+            { step: 50, message: 'Creating market dashboard...' },
+            { step: 60, message: 'Initializing agent network visualization...' },
+            { step: 70, message: 'Setting up heat map systems...' },
+            { step: 80, message: 'Connecting to data sources...' },
+            { step: 90, message: 'Starting real-time processing...' },
+            { step: 100, message: 'System ready!' }
+        ];
+        
+        function updateLoading(progress, message) {
+            const loadingBar = document.getElementById('loadingBar');
+            const loadingStatus = document.getElementById('loadingStatus');
+            
+            if (loadingBar) loadingBar.style.width = `${progress}%`;
+            if (loadingStatus) loadingStatus.textContent = message;
+        }
+        
+        function hideLoading() {
+            const loadingScreen = document.getElementById('loadingScreen');
+            if (loadingScreen) {
+                loadingScreen.classList.add('hidden');
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                }, 500);
+            }
+        }
+        
+        function showError(message) {
+            const errorScreen = document.getElementById('errorScreen');
+            const errorMessage = document.getElementById('errorMessage');
+            const loadingScreen = document.getElementById('loadingScreen');
+            
+            if (errorMessage) errorMessage.textContent = message;
+            if (errorScreen) errorScreen.classList.add('visible');
+            if (loadingScreen) loadingScreen.style.display = 'none';
+        }
+        
+        function showCompatibilityInfo() {
+            const info = `
+Browser Compatibility Requirements:
+• WebGL 2.0 support (for 3D visualizations)
+• WebGPU support (recommended, falls back to WebGL)
+• WebSocket support (for real-time data)
+• ES2021+ JavaScript support
+• Canvas 2D context support
+• Modern CSS Grid and Flexbox
+
+Current Browser Capabilities:
+• WebGL: ${!!window.WebGLRenderingContext ? 'Supported' : 'Not Supported'}
+• WebGL2: ${!!window.WebGL2RenderingContext ? 'Supported' : 'Not Supported'}
+• WebGPU: ${!!navigator.gpu ? 'Supported' : 'Not Supported'}
+• WebSocket: ${!!window.WebSocket ? 'Supported' : 'Not Supported'}
+• Performance API: ${!!window.performance ? 'Supported' : 'Not Supported'}
+
+For the best experience, use:
+• Chrome 100+
+• Firefox 100+
+• Safari 15+
+• Edge 100+
+            `;
+            alert(info);
+        }
+        
+        function checkCompatibility() {
+            const issues = [];
+            
+            if (!window.WebGLRenderingContext) {
+                issues.push('WebGL not supported');
+            }
+            
+            if (!window.WebSocket) {
+                issues.push('WebSocket not supported');
+            }
+            
+            if (!window.requestAnimationFrame) {
+                issues.push('RequestAnimationFrame not supported');
+            }
+            
+            if (issues.length > 0) {
+                const warning = document.getElementById('compatibilityWarning');
+                if (warning) {
+                    warning.textContent = `⚠️ Compatibility issues: ${issues.join(', ')}`;
+                    warning.classList.add('visible');
+                }
+            }
+            
+            return issues.length === 0;
+        }
+        
+        async function initializeSystem() {
+            try {
+                // Check compatibility
+                updateLoading(10, 'Checking browser compatibility...');
+                const isCompatible = checkCompatibility();
+                
+                if (!isCompatible) {
+                    console.warn('Browser compatibility issues detected, continuing anyway...');
+                }
+                
+                // Simulate loading steps for demonstration
+                for (const { step, message } of loadingSteps) {
+                    updateLoading(step, message);
+                    await new Promise(resolve => setTimeout(resolve, Math.random() * 500 + 200));
+                }
+                
+                // Load the 500 agent visualization system - Force script loading first
+                await new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = './main_500_agents.js';
+                    script.onload = () => {
+                        console.log('✅ 500 Agent system loaded successfully');
+                        resolve();
+                    };
+                    script.onerror = (error) => {
+                        console.error('❌ Failed to load 500 agent system:', error);
+                        reject(error);
+                    };
+                    document.head.appendChild(script);
+                });
+                
+                // Wait a moment for the script to execute
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                // Get the constructor
+                const LivingEconomyVisualizationSystem = window.LivingEconomyVisualizationSystem;
+                
+                if (!LivingEconomyVisualizationSystem) {
+                    throw new Error('LivingEconomyVisualizationSystem not found after loading script');
+                }
+                
+                updateLoading(95, 'Starting visualization system...');
+                
+                const vizSystem = new LivingEconomyVisualizationSystem();
+                await vizSystem.initialize();
+                await vizSystem.start();
+                
+                // Make globally accessible
+                window.vizSystem = vizSystem;
+                
+                updateLoading(100, 'System ready!');
+                
+                // Show debug panel if in development mode
+                if (window.location.search.includes('debug=true')) {
+                    showDebugPanel();
+                }
+                
+                // Show performance stats if enabled
+                if (window.location.search.includes('perf=true')) {
+                    showPerfStats();
+                }
+                
+                // Hide loading screen
+                setTimeout(() => {
+                    hideLoading();
+                    console.log('🎯 Living Economy Arena Data Visualization System is ready!');
+                    console.log('🔗 Access system via window.vizSystem');
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Failed to initialize system:', error);
+                showError(`Initialization failed: ${error.message}`);
+            }
+        }
+        
+        function showDebugPanel() {
+            const debugPanel = document.getElementById('debugPanel');
+            const debugInfo = document.getElementById('debugInfo');
+            
+            if (debugPanel) debugPanel.classList.add('visible');
+            
+            function updateDebugInfo() {
+                if (window.vizSystem && debugInfo) {
+                    const status = window.vizSystem.getSystemStatus();
+                    const metrics = window.vizSystem.getPerformanceMetrics();
+                    
+                    debugInfo.innerHTML = `
+                        Status: ${status.isRunning ? 'Running' : 'Stopped'}<br>
+                        Components: ${status.componentCount}<br>
+                        Sources: ${status.connectedSources.length}<br>
+                        Errors: ${status.errorCount}<br>
+                        Memory: ${metrics.memoryMB}MB<br>
+                        FPS: ${Math.round(metrics.fps)}
+                    `;
+                }
+                
+                setTimeout(updateDebugInfo, 1000);
+            }
+            
+            updateDebugInfo();
+        }
+        
+        function showPerfStats() {
+            const perfStats = document.getElementById('perfStats');
+            const perfInfo = document.getElementById('perfInfo');
+            
+            if (perfStats) perfStats.classList.add('visible');
+            
+            function updatePerfInfo() {
+                if (window.vizSystem && perfInfo) {
+                    const metrics = window.vizSystem.getPerformanceMetrics();
+                    
+                    perfInfo.innerHTML = `
+                        FPS: ${Math.round(metrics.fps)}<br>
+                        Render: ${metrics.renderTime?.toFixed(1) || 0}ms<br>
+                        Memory: ${metrics.memoryMB}MB<br>
+                        Data Rate: ${metrics.dataRate || 0}/s<br>
+                        Latency: ${metrics.latencyMS || 0}ms
+                    `;
+                }
+                
+                setTimeout(updatePerfInfo, 500);
+            }
+            
+            updatePerfInfo();
+        }
+        
+        // Start initialization when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeSystem);
+        } else {
+            initializeSystem();
+        }
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (event) => {
+            if (event.ctrlKey || event.metaKey) {
+                switch (event.key) {
+                    case 'd':
+                        event.preventDefault();
+                        showDebugPanel();
+                        break;
+                    case 'p':
+                        event.preventDefault();
+                        showPerfStats();
+                        break;
+                    case 'r':
+                        event.preventDefault();
+                        window.location.reload();
+                        break;
+                    case 'e':
+                        event.preventDefault();
+                        if (window.vizSystem) {
+                            window.vizSystem.exportAllVisualizations();
+                        }
+                        break;
+                }
+            }
+        });
+        
+        // Prevent context menu on right click for better UX
+        document.addEventListener('contextmenu', (event) => {
+            event.preventDefault();
+        });
+        
+    </script>
+</body>
+</html>
