@@ -53,10 +53,18 @@ Thumbs.db
 logs/
 smart_adaptive_system.log
 
-# API Keys (security)
+# API Keys (security) - NEVER COMMIT THESE!
 config.json
 secrets.json
+.env
 .env.local
+.env.production
+
+# Files that might contain API keys
+**/config.js
+**/smart_adaptive_system.py
+**/*key*.py
+**/*secret*.py
 
 # Temporary files
 tmp/

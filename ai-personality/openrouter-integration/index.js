@@ -18,7 +18,7 @@ class OpenRouterIntegration extends EventEmitter {
     constructor(config = {}) {
         super();
         
-        this.apiKey = config.apiKey || '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';
+        this.apiKey = config.apiKey || process.env.OPENROUTER_API_KEY || 'YOUR_API_KEY_HERE';
         this.baseURL = 'https://openrouter.ai/api/v1';
         this.primaryModel = 'moonshotai/kimi-k2:free';
         

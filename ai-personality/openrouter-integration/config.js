@@ -7,7 +7,7 @@ module.exports = {
     // API Configuration
     api: {
         baseURL: 'https://openrouter.ai/api/v1',
-        apiKey: process.env.OPENROUTER_API_KEY || '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',
+        apiKey: process.env.OPENROUTER_API_KEY || 'YOUR_API_KEY_HERE',
         timeout: 30000,
         retryAttempts: 3,
         retryDelay: 1000
