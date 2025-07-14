@@ -41,7 +41,8 @@ ULTRA_CHEAP_MODELS = [
     "meta-llama/llama-3.2-1b-instruct"
 ]
 
-API_KEY = "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"
+import os
+API_KEY = os.getenv("OPENROUTER_API_KEY", "YOUR_API_KEY_HERE")
 
 @dataclass
 class ModelMetrics:
